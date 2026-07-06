@@ -10,8 +10,14 @@ import java.util.ArrayList;
 public class MemberModel {
     private Connection conn;
 
-    public MemberModel(Connection conn) {
+    public MemberModel(Connection conn) throws SQLException {
         this.conn = conn;
+        String sql = "CREATE TABLE IF NOT EXISTS members ("
+                + "id SERIAL PRIMARY KEY,"
+                + "name VARCHAR(255) NOT NULL,"
+                + "email VARCHAR(255) NOT NULL UNIQUE"
+                + ")";
+         this.conn.prepareStatement(sql).executeUpdate();
     }
 
     public ArrayList<Member> findAllMembers() {
