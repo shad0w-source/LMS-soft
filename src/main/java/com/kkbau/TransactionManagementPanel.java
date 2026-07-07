@@ -26,32 +26,30 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 
-public class TransactionManagementPanel extends JPanel {
+public class TransactionManagementPanel extends JPanel implements SearchablePanel {
 
-    // Style Palette 
     private static final Color COLOR_BG = new Color(245, 247, 250);
     private static final Color COLOR_CARD_BG = Color.WHITE;
-    private static final Color COLOR_PRIMARY = new Color(11, 37, 69); 
-    private static final Color COLOR_SECONDARY_BTN = new Color(212, 221, 247); 
+    private static final Color COLOR_PRIMARY = new Color(11, 37, 69);
+    private static final Color COLOR_SECONDARY_BTN = new Color(212, 221, 247);
     private static final Color COLOR_TEXT_MAIN = new Color(33, 37, 41);
     private static final Color COLOR_TEXT_MUTED = new Color(140, 150, 165);
     private static final Color COLOR_BORDER = new Color(235, 238, 243);
     private static final Color COLOR_INPUT_BG = new Color(241, 243, 246);
 
     private IssueBooksModel ibm;
-    private LibraryDashboard dashboard; 
+    private LibraryDashboard dashboard;
     private JTable table;
     private DefaultTableModel model;
 
     public TransactionManagementPanel(IssueBooksModel issueBooksModel, LibraryDashboard dashboard) {
         this.ibm = issueBooksModel;
         this.dashboard = dashboard;
-        
+
         setLayout(new BorderLayout(25, 0));
         setBackground(COLOR_BG);
         setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        // 1. LEFT SIDE PANEL: Process Transaction Form
         JPanel leftFormPanel = new JPanel(new BorderLayout(0, 20));
         leftFormPanel.setBackground(COLOR_CARD_BG);
         leftFormPanel.setPreferredSize(new Dimension(300, 0));
@@ -65,7 +63,6 @@ public class TransactionManagementPanel extends JPanel {
         formTitle.setForeground(COLOR_PRIMARY);
         leftFormPanel.add(formTitle, BorderLayout.NORTH);
 
-        // Form Fields Container
         JPanel fieldsContainer = new JPanel(new GridLayout(4, 1, 0, 10));
         fieldsContainer.setBackground(COLOR_CARD_BG);
 
@@ -86,7 +83,6 @@ public class TransactionManagementPanel extends JPanel {
 
         leftFormPanel.add(fieldsContainer, BorderLayout.CENTER);
 
-        // Action Buttons Grid Row
         JPanel btnActionRow = new JPanel(new GridLayout(1, 2, 12, 0));
         btnActionRow.setBackground(COLOR_CARD_BG);
         btnActionRow.setPreferredSize(new Dimension(0, 42));
@@ -94,13 +90,12 @@ public class TransactionManagementPanel extends JPanel {
         JButton btnIssue = createRoundedButton("Issue", COLOR_PRIMARY, Color.WHITE);
         JButton btnReturn = createRoundedButton("Return", COLOR_SECONDARY_BTN, COLOR_PRIMARY);
 
-        // --- Action Listeners ---
         btnIssue.addActionListener(e -> {
             String memberId = txtMemberId.getText().trim();
             String bookId = txtBookId.getText().trim();
 
-            if (memberId.isEmpty() || "Enter Member ID".equals(memberId) ||
-                bookId.isEmpty() || "Enter Book ID".equals(bookId)) {
+            if (memberId.isEmpty() || "Enter Member ID".equals(memberId)
+                    || bookId.isEmpty() || "Enter Book ID".equals(bookId)) {
                 JOptionPane.showMessageDialog(this, "Please enter both Member ID and Book ID.", "Input Warning", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -108,8 +103,8 @@ public class TransactionManagementPanel extends JPanel {
             boolean success = ibm.issueBook(memberId, bookId);
             if (success) {
                 JOptionPane.showMessageDialog(this, "Book issued successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                loadIssuedRecords(); 
-                
+                loadIssuedRecords();
+
                 if (dashboard != null) {
                     dashboard.refreshCatalogData();
                 }
@@ -125,8 +120,8 @@ public class TransactionManagementPanel extends JPanel {
             String memberId = txtMemberId.getText().trim();
             String bookId = txtBookId.getText().trim();
 
-            if (memberId.isEmpty() || "Enter Member ID".equals(memberId) ||
-                bookId.isEmpty() || "Enter Book ID".equals(bookId)) {
+            if (memberId.isEmpty() || "Enter Member ID".equals(memberId)
+                    || bookId.isEmpty() || "Enter Book ID".equals(bookId)) {
                 JOptionPane.showMessageDialog(this, "Please enter both Member ID and Book ID to process return.", "Input Warning", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -134,8 +129,8 @@ public class TransactionManagementPanel extends JPanel {
             boolean success = ibm.returnBook(memberId, bookId);
             if (success) {
                 JOptionPane.showMessageDialog(this, "Book returned successfully! Issue record removed from logs.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                loadIssuedRecords(); 
-                
+                loadIssuedRecords();
+
                 if (dashboard != null) {
                     dashboard.refreshCatalogData();
                 }
@@ -153,7 +148,6 @@ public class TransactionManagementPanel extends JPanel {
 
         add(leftFormPanel, BorderLayout.WEST);
 
-        // 2. RIGHT SIDE PANEL: Main Area / Table Card
         JPanel rightCardPanel = new JPanel(new BorderLayout(0, 15));
         rightCardPanel.setBackground(COLOR_CARD_BG);
         rightCardPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -166,18 +160,17 @@ public class TransactionManagementPanel extends JPanel {
         sectionTitle.setForeground(COLOR_PRIMARY);
         rightCardPanel.add(sectionTitle, BorderLayout.NORTH);
 
-        // 3. JTable Setup 
         String[] columns = {"MEMBER", "BOOK TITLE", "ISSUE DATE"};
 
         model = new DefaultTableModel(columns, 0) {
             @Override
-            public boolean isCellEditable(int row, int column) { 
-                return false; 
+            public boolean isCellEditable(int row, int column) {
+                return false;
             }
         };
 
         table = new JTable(model);
-        table.setRowHeight(65); 
+        table.setRowHeight(65);
         table.setShowGrid(false);
         table.setIntercellSpacing(new Dimension(0, 0));
         table.setBackground(Color.WHITE);
@@ -210,7 +203,7 @@ public class TransactionManagementPanel extends JPanel {
         scrollPane.setBackground(Color.WHITE);
         scrollPane.getViewport().setBackground(Color.WHITE);
         scrollPane.setBorder(new EmptyBorder(0, 10, 10, 10));
-        
+
         rightCardPanel.add(scrollPane, BorderLayout.CENTER);
         add(rightCardPanel, BorderLayout.CENTER);
 
@@ -218,7 +211,7 @@ public class TransactionManagementPanel extends JPanel {
     }
 
     private void loadIssuedRecords() {
-        model.setRowCount(0); 
+        model.setRowCount(0);
         ArrayList<Object[]> liveRecords = ibm.findAllIssuedRecordsForTable();
         for (Object[] row : liveRecords) {
             if (row.length >= 3) {
@@ -284,5 +277,35 @@ public class TransactionManagementPanel extends JPanel {
         btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btn.setForeground(fg);
         return btn;
+    }
+
+    @Override
+    public void search(String query) {
+        if (model == null) {
+            return;
+        }
+
+        model.setRowCount(0);
+
+        // Treat placeholder value or empty string as an empty query
+        if (query == null || query.trim().isEmpty() || "Search".equalsIgnoreCase(query.trim())) {
+            loadIssuedRecords();
+            return;
+        }
+
+        String lowerQuery = query.toLowerCase().trim();
+        ArrayList<Object[]> liveRecords = ibm.findAllIssuedRecordsForTable();
+
+        for (Object[] row : liveRecords) {
+            if (row.length >= 3) {
+                String member = String.valueOf(row[0]).toLowerCase();
+                String bookTitle = String.valueOf(row[1]).toLowerCase();
+                String issueDate = String.valueOf(row[2]).toLowerCase();
+
+                if (member.contains(lowerQuery) || bookTitle.contains(lowerQuery) || issueDate.contains(lowerQuery)) {
+                    model.addRow(new Object[]{row[0], row[1], row[2]});
+                }
+            }
+        }
     }
 }

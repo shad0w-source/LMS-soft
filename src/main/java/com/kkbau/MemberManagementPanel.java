@@ -29,7 +29,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellEditor;
 
-public class MemberManagementPanel extends JPanel {
+public class MemberManagementPanel extends JPanel implements SearchablePanel {
 
     private static final Color COLOR_BG = new Color(245, 247, 250);
     private static final Color COLOR_CARD_BG = Color.WHITE;
@@ -138,7 +138,6 @@ public class MemberManagementPanel extends JPanel {
             }
         });
 
-        // Set custom renderer and editor columns
         table.getColumnModel().getColumn(3).setCellRenderer(new ActionButtonsRendererOrEditor());
         table.getColumnModel().getColumn(3).setCellEditor(new ActionButtonsRendererOrEditor());
 
@@ -159,19 +158,16 @@ public class MemberManagementPanel extends JPanel {
         private final JButton btnEdit = new JButton("Edit/Delete");
 
         public ActionButtonsRendererOrEditor() {
-            // Style Renderer Component
             styleButton(btnRender);
             renderPanel.setBackground(Color.WHITE);
             renderPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, COLOR_BORDER));
             renderPanel.add(btnRender);
 
-            // Style Editor Component
             styleButton(btnEdit);
             editPanel.setBackground(Color.WHITE);
             editPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, COLOR_BORDER));
             editPanel.add(btnEdit);
 
-            // Fire events directly on the editor button
             btnEdit.addActionListener(e -> {
                 int row = table.convertRowIndexToModel(table.getEditingRow());
 
@@ -209,7 +205,6 @@ public class MemberManagementPanel extends JPanel {
                         }
                     }
                 } else {
-                    // Fallback to release editing mode safely if no index row is targeted
                     fireEditingStopped();
                 }
             });
@@ -256,5 +251,32 @@ public class MemberManagementPanel extends JPanel {
 
     public void refreshMemberTable() {
         loadMembers();
+    }
+
+    @Override
+    public void search(String query) {
+        model.setRowCount(0);
+        
+        // Treat placeholder value or empty string as an empty query
+        if (query == null || query.trim().isEmpty() || "Search".equalsIgnoreCase(query.trim())) {
+            loadMembers();
+            return;
+        }
+
+        String lowerQuery = query.toLowerCase().trim();
+
+        for (Member m : memberList) {
+            if (m.getName().toLowerCase().contains(lowerQuery) || 
+                m.getEmail().toLowerCase().contains(lowerQuery) ||
+                String.valueOf(m.getId()).contains(lowerQuery)) {
+                
+                model.addRow(new Object[]{
+                    m.getName(),
+                    String.valueOf(m.getId()),
+                    m.getEmail(),
+                    ""
+                });
+            }
+        }
     }
 }

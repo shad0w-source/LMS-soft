@@ -45,7 +45,7 @@ public class LibraryDashboard extends JFrame {
     private final Color COLOR_TEXT_MAIN = new Color(17, 24, 39);
     private final Color COLOR_TEXT_MUTED = new Color(107, 114, 128);
     private final Color COLOR_BUTTON_BG = new Color(15, 32, 67);
-    private static final Color COLOR_SECONDARY_BTN = new Color(212, 221, 247); 
+    private static final Color COLOR_SECONDARY_BTN = new Color(212, 221, 247);
 
     // Navigation and Panels
     private JPanel cardPanel;
@@ -53,12 +53,14 @@ public class LibraryDashboard extends JFrame {
     private JPanel[] navButtons;
     private String[] panelNames = {"Book Catalog", "Member Management", "Borrowing/Returns"};
 
-    ArrayList<Book> books = new ArrayList<>();
+    private ArrayList<Book> books = new ArrayList<>();
     private JTable table;
     private DefaultTableModel model;
     private BookModel bm;
     private MemberModel mm;
     private IssueBooksModel ibm;
+
+    private JTextField searchField;
 
     public LibraryDashboard(Connection conn) {
         try {
@@ -145,8 +147,31 @@ public class LibraryDashboard extends JFrame {
             navItem.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mousePressed(MouseEvent e) {
+                    // Safe cleanup: Stop editing before swapping views
+                    if (table != null && table.isEditing()) {
+                        table.getCellEditor().stopCellEditing();
+                    }
+
                     setTabActive(index);
                     cardLayout.show(cardPanel, panelNames[index]);
+
+                    if (searchField != null) {
+                        searchField.setText("Search");
+                        searchField.setForeground(Color.GRAY);
+                    }
+
+                    // Reset search states for all tabs when a user swaps views
+                    searchBooks("");
+
+                    Component memberPanel = cardPanel.getComponent(1);
+                    if (memberPanel instanceof SearchablePanel) {
+                        ((SearchablePanel) memberPanel).search("");
+                    }
+
+                    Component transPanel = cardPanel.getComponent(2);
+                    if (transPanel instanceof SearchablePanel) {
+                        ((SearchablePanel) transPanel).search("");
+                    }
                 }
             });
 
@@ -165,36 +190,87 @@ public class LibraryDashboard extends JFrame {
         header.setBorder(new EmptyBorder(20, 30, 20, 30));
 
         // Mimic the search field from UI
-        JTextField searchField = new JTextField("Search");
+        searchField = new JTextField("Search");
         searchField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        searchField.setForeground(Color.GRAY); 
+        searchField.setForeground(Color.GRAY); // Faded placeholder color
         searchField.setPreferredSize(new Dimension(400, 40));
         searchField.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(230, 233, 238), 1),
                 BorderFactory.createEmptyBorder(0, 15, 0, 15)
         ));
 
+        searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+            private void routeSearch() {
+                // Safe cleanup: Close any open row editors if a query filter triggers
+                if (table != null && table.isEditing()) {
+                    table.getCellEditor().stopCellEditing();
+                }
+
+                String text = searchField.getText().trim();
+                if (text.equals("Search")) {
+                    text = "";
+                }
+
+                int activeIndex = 0;
+                for (int i = 0; i < navButtons.length; i++) {
+                    if (navButtons[i].getBackground().equals(COLOR_PRIMARY_NAV)) {
+                        activeIndex = i;
+                        break;
+                    }
+                }
+
+                if (activeIndex == 0) {
+                    searchBooks(text);
+                } else if (activeIndex == 1) {
+                    Component panel = cardPanel.getComponent(1); // Member Management
+                    if (panel instanceof SearchablePanel) {
+                        ((SearchablePanel) panel).search(text);
+                    }
+                } else if (activeIndex == 2) {
+                    Component panel = cardPanel.getComponent(2); // Borrowing/Returns
+                    if (panel instanceof SearchablePanel) {
+                        ((SearchablePanel) panel).search(text);
+                    }
+                }
+            }
+
+            @Override
+            public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                routeSearch();
+            }
+
+            @Override
+            public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                routeSearch();
+            }
+
+            @Override
+            public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                routeSearch();
+            }
+        });
+
         searchField.addFocusListener(new java.awt.event.FocusListener() {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
                 if (searchField.getText().equals("Search")) {
                     searchField.setText("");
-                    searchField.setForeground(new Color(30, 41, 59)); 
+                    searchField.setForeground(new Color(30, 41, 59)); // Active text color
                 }
             }
 
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
-                if (searchField.getText().isEmpty()) {
+                if (searchField.getText().trim().isEmpty()) {
                     searchField.setText("Search");
-                    searchField.setForeground(Color.GRAY); 
+                    searchField.setForeground(Color.GRAY); // Placeholder color
                 }
             }
         });
 
         JPanel searchWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         searchWrapper.setBackground(COLOR_CONTENT_BG);
-        searchWrapper.setFocusable(true); 
+        searchWrapper.setFocusable(true);
         searchWrapper.add(searchField);
 
         header.add(searchWrapper, BorderLayout.WEST);
@@ -212,22 +288,19 @@ public class LibraryDashboard extends JFrame {
     }
 
     private void loadBooks(BookModel bm) {
-    books = bm.findAllBooks();
-    model.setRowCount(0); 
+        books = bm.findAllBooks();
+        model.setRowCount(0);
 
-    for (Book b : books) {
-        // We use b.getId() so the UI displays the database primary key.
-        // This ensures the "Book ID" typed into the Transaction panel 
-        // will always match the ID the user sees in the table.
-        model.addRow(new Object[]{
-            String.valueOf(b.getId()), // Column 0: Actual Database ID
-            "<html><b>" + b.getTitle() + "</b><br><span style='font-size:11px; color:#6B7280;'>" + b.getAuthor() + "</span></html>",    // Column 1
-            b.getStock() + " Copies",                                        // Column 2
-            b.getAddedDate(),                                                // Column 3
-            ""                                                               // Column 4
-        });
+        for (Book b : books) {
+            model.addRow(new Object[]{
+                String.valueOf(b.getId()), // Column 0: Actual Database ID
+                "<html><b>" + b.getTitle() + "</b><br><span style='font-size:11px; color:#6B7280;'>" + b.getAuthor() + "</span></html>", // Column 1
+                b.getStock() + " Copies", // Column 2
+                b.getAddedDate(), // Column 3
+                "" // Column 4: Actions Placeholder
+            });
+        }
     }
-}
 
     private JPanel createBookCatalogPage(BookModel bm) {
         JPanel page = new JPanel(new BorderLayout());
@@ -250,7 +323,7 @@ public class LibraryDashboard extends JFrame {
                 g2.setColor(COLOR_BUTTON_BG);
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
                 g2.dispose();
-                super.paintComponent(g); 
+                super.paintComponent(g);
             }
         };
 
@@ -259,7 +332,7 @@ public class LibraryDashboard extends JFrame {
         btnAddBook.setBorderPainted(false);
         btnAddBook.setFocusPainted(false);
         btnAddBook.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        btnAddBook.setForeground(Color.WHITE); 
+        btnAddBook.setForeground(Color.WHITE);
         btnAddBook.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btnAddBook.setBorder(new EmptyBorder(10, 20, 10, 20));
 
@@ -292,10 +365,8 @@ public class LibraryDashboard extends JFrame {
         subHeader.add(btnAddBook, BorderLayout.EAST);
         page.add(subHeader, BorderLayout.NORTH);
 
-        // Updated 5-Column structural title header tags
         String[] columns = {"ID", "BOOK TITLE & AUTHOR", "STOCK QUANTITY", "ADDED DATE", "ACTIONS"};
 
-        // Target index 4 explicitly for editing interactions (Actions column)
         model = new DefaultTableModel(columns, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -330,7 +401,6 @@ public class LibraryDashboard extends JFrame {
             }
         });
 
-        // Safe dynamic renderer mapping targeting column index 4 (Actions)
         table.getColumnModel().getColumn(4).setCellRenderer(new ActionButtonsRendererOrEditor());
         table.getColumnModel().getColumn(4).setCellEditor(new ActionButtonsRendererOrEditor());
 
@@ -344,6 +414,7 @@ public class LibraryDashboard extends JFrame {
     }
 
     private class ActionButtonsRendererOrEditor extends AbstractCellEditor implements TableCellEditor, javax.swing.table.TableCellRenderer {
+
         private final JPanel renderPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 25, 16));
         private final JPanel editPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 25, 16));
         private final JButton btnRender = new JButton("Edit/Delete");
@@ -361,40 +432,55 @@ public class LibraryDashboard extends JFrame {
             editPanel.add(btnEdit);
 
             btnEdit.addActionListener(e -> {
-                int row = table.convertRowIndexToModel(table.getEditingRow());
-                if (row == -1) {
-                    row = table.convertRowIndexToModel(table.getSelectedRow());
+                int viewRow = table.getEditingRow();
+                if (viewRow == -1) {
+                    viewRow = table.getSelectedRow();
                 }
 
-                if (row != -1 && row < books.size()) {
-                    Book selectedBook = books.get(row);
-                    int bookId = selectedBook.getId();
-                    String currentTitle = selectedBook.getTitle();
-                    String currentAuthor = selectedBook.getAuthor();
+                if (viewRow != -1) {
+                    int modelRow = table.convertRowIndexToModel(viewRow);
+                    int bookId = Integer.parseInt((String) model.getValueAt(modelRow, 0));
 
-                    fireEditingStopped();
-
-                    EditBookDialog editDialog = new EditBookDialog(LibraryDashboard.this, currentTitle, currentAuthor);
-                    editDialog.setVisible(true);
-
-                    if (editDialog.isDeleteRequested()) {
-                        try {
-                            bm.deleteBook(bookId);
-                            refreshBooksFromDatabase(bm);
-                            loadBooks(bm);
-                        } catch (SQLException ex) {
-                            ex.printStackTrace();
+                    Book selectedBook = null;
+                    for (Book b : books) {
+                        if (b.getId() == bookId) {
+                            selectedBook = b;
+                            break;
                         }
-                    } else if (editDialog.isEditSucceeded()) {
-                        String updatedTitle = editDialog.getBookName();
-                        String updatedAuthor = editDialog.getAuthorName();
-                        try {
-                            bm.updateBook(bookId, updatedTitle, updatedAuthor);
-                            refreshBooksFromDatabase(bm);
-                            loadBooks(bm);
-                        } catch (SQLException ex) {
-                            ex.printStackTrace();
+                    }
+
+                    if (selectedBook != null) {
+                        String currentTitle = selectedBook.getTitle();
+                        String currentAuthor = selectedBook.getAuthor();
+
+                        // 1. OPEN DIALOG FIRST while editing state is active
+                        EditBookDialog editDialog = new EditBookDialog(LibraryDashboard.this, currentTitle, currentAuthor);
+                        editDialog.setVisible(true);
+
+                        // 2. STOP EDITING HERE (Right after dialog closes, but BEFORE data reloading)
+                        fireEditingStopped();
+
+                        if (editDialog.isDeleteRequested()) {
+                            try {
+                                bm.deleteBook(bookId);
+                                refreshBooksFromDatabase(bm);
+                                loadBooks(bm);
+                            } catch (SQLException ex) {
+                                ex.printStackTrace();
+                            }
+                        } else if (editDialog.isEditSucceeded()) {
+                            String updatedTitle = editDialog.getBookName();
+                            String updatedAuthor = editDialog.getAuthorName();
+                            try {
+                                bm.updateBook(bookId, updatedTitle, updatedAuthor);
+                                refreshBooksFromDatabase(bm);
+                                loadBooks(bm);
+                            } catch (SQLException ex) {
+                                ex.printStackTrace();
+                            }
                         }
+                    } else {
+                        fireEditingStopped();
                     }
                 } else {
                     fireEditingStopped();
@@ -455,14 +541,33 @@ public class LibraryDashboard extends JFrame {
         repaint();
     }
 
-    /**
-     * Public gateway allowing sub-panels to trigger a synchronized data redraw 
-     * for Book list elements when quantities fluctuate.
-     */
     public void refreshCatalogData() {
         if (bm != null) {
             refreshBooksFromDatabase(bm);
             loadBooks(bm);
+        }
+    }
+
+    public void searchBooks(String query) {
+        if (model == null) {
+            return;
+        }
+
+        model.setRowCount(0);
+
+        for (Book b : books) {
+            if (b.getTitle().toLowerCase().contains(query.toLowerCase())
+                    || b.getAuthor().toLowerCase().contains(query.toLowerCase())
+                    || String.valueOf(b.getId()).contains(query)) {
+
+                model.addRow(new Object[]{
+                    String.valueOf(b.getId()),
+                    "<html><b>" + b.getTitle() + "</b><br><span style='font-size:11px; color:#6B7280;'>" + b.getAuthor() + "</span></html>",
+                    b.getStock() + " Copies",
+                    b.getAddedDate(),
+                    ""
+                });
+            }
         }
     }
 }
