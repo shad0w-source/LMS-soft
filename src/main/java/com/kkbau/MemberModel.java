@@ -59,7 +59,7 @@ public class MemberModel {
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, name);
             ps.setString(2, email);
-            ps.setInt(3, id); // Ensure ID is the 3rd parameter
+            ps.setInt(3, id); 
             ps.executeUpdate();
         }
     }

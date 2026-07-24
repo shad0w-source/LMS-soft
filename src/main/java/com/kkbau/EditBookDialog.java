@@ -26,12 +26,9 @@ import javax.swing.border.EmptyBorder;
 public class EditBookDialog extends JDialog {
     private JTextField txtBookName;
     private JTextField txtAuthorName;
-    
-    // Lifecycle action flags
+
     private boolean editSucceeded = false;
     private boolean deleteRequested = false;
-
-    // Output Data holds
     private String bookName;
     private String authorName;
 
@@ -56,14 +53,14 @@ public class EditBookDialog extends JDialog {
         formPanel.add(headerLabel);
         formPanel.add(Box.createVerticalStrut(25));
 
-        // Input 1: Book Name
+        // Book Name
         formPanel.add(createFieldLabel("BOOK TITLE"));
         txtBookName = createStyledTextField();
         txtBookName.setText(existingBookName);
         formPanel.add(txtBookName);
         formPanel.add(Box.createVerticalStrut(15));
 
-        // Input 2: Author Name
+        // Author Name
         formPanel.add(createFieldLabel("AUTHOR NAME"));
         txtAuthorName = createStyledTextField();
         txtAuthorName.setText(existingAuthorName);
@@ -80,7 +77,7 @@ public class EditBookDialog extends JDialog {
         JButton btnDelete = createStyledButton("Delete", new Color(254, 226, 226), new Color(153, 27, 27)); 
         JButton btnCancel = createStyledButton("Cancel", new Color(241, 245, 249), new Color(107, 114, 128));
 
-        // Save Trigger Logic
+        // Save book
         btnSave.addActionListener(e -> {
             if (validateForm()) {
                 bookName = txtBookName.getText().trim();
@@ -90,7 +87,7 @@ public class EditBookDialog extends JDialog {
             }
         });
 
-        // Delete Trigger Logic
+        // Delete book
         btnDelete.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
                     this, 
@@ -164,7 +161,6 @@ public class EditBookDialog extends JDialog {
         return true;
     }
 
-    // Getters for integration wireframes
     public boolean isEditSucceeded() { return editSucceeded; }
     public boolean isDeleteRequested() { return deleteRequested; }
     public String getBookName() { return bookName; }

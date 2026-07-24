@@ -30,25 +30,22 @@ public class AddBookDialog extends JDialog {
     private JTextField txtStock;
     private boolean succeeded = false;
 
-    // Data holder variables
     private String bookTitle;
     private String authorName;
     private int stock;
 
     public AddBookDialog(Frame parent) {
-        super(parent, "Add New Book", true); // true makes it a modal dialog
+        super(parent, "Add New Book", true); 
         setLayout(new BorderLayout());
         setSize(400, 450);
         setLocationRelativeTo(parent);
         setResizable(false);
 
-        // Core Form Container
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        // Form Header
         JLabel headerLabel = new JLabel("Create New Book");
         headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
         headerLabel.setForeground(new Color(15, 32, 67)); // COLOR_BUTTON_BG
@@ -56,25 +53,25 @@ public class AddBookDialog extends JDialog {
         formPanel.add(headerLabel);
         formPanel.add(Box.createVerticalStrut(25));
 
-        // Input 1: Book Title
+        // Book Title
         formPanel.add(createFieldLabel("BOOK TITLE"));
         txtTitle = createStyledTextField("e.g. The Bauhaus Manual");
         formPanel.add(txtTitle);
         formPanel.add(Box.createVerticalStrut(15));
 
-        // Input 2: Author Name
+        // Author Name
         formPanel.add(createFieldLabel("AUTHOR NAME"));
         txtAuthor = createStyledTextField("e.g. Walter Gropius");
         formPanel.add(txtAuthor);
         formPanel.add(Box.createVerticalStrut(15));
 
-        // Input 3: Stock Count
+        // Stock Count
         formPanel.add(createFieldLabel("INITIAL STOCK"));
         txtStock = createStyledTextField("e.g. 5");
         formPanel.add(txtStock);
         formPanel.add(Box.createVerticalStrut(30));
 
-        // Action Buttons Row
+        // Action Buttons 
         JPanel actionsRow = new JPanel(new GridLayout(1, 2, 15, 0));
         actionsRow.setBackground(Color.WHITE);
         actionsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
@@ -83,14 +80,13 @@ public class AddBookDialog extends JDialog {
         JButton btnSave = createStyledButton("Save Book", new Color(15, 32, 67), Color.WHITE);
         JButton btnCancel = createStyledButton("Cancel", new Color(241, 245, 249), new Color(107, 114, 128));
 
-        // Save logic validation
         btnSave.addActionListener(e -> {
             if (validateForm()) {
                 bookTitle = txtTitle.getText().trim();
                 authorName = txtAuthor.getText().trim();
                 stock = Integer.parseInt(txtStock.getText().trim());
                 succeeded = true;
-                dispose(); // Close window
+                dispose();
             }
         });
 
@@ -159,7 +155,6 @@ public class AddBookDialog extends JDialog {
         return true;
     }
 
-    // Getters to retrieve data after form closes safely
     public boolean isSucceeded() { return succeeded; }
     public String getBookTitle() { return bookTitle; }
     public String getAuthorName() { return authorName; }

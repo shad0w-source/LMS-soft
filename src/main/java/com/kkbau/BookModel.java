@@ -31,7 +31,6 @@ public class BookModel {
     }
 
 
-    // NEW METHOD: Updates the book title and author in the database
     public void updateBook(int id, String title, String author) throws SQLException {
         String sql = "UPDATE books SET title = ?, author = ? WHERE id = ?";
         try (PreparedStatement psmt = this.conn.prepareStatement(sql)) {
@@ -42,7 +41,6 @@ public class BookModel {
         }
     }
 
-    // NEW METHOD: Deletes the book matching the ID permanently
     public void deleteBook(int id) throws SQLException {
         String sql = "DELETE FROM books WHERE id = ?";
         try (PreparedStatement psmt = this.conn.prepareStatement(sql)) {

@@ -256,8 +256,7 @@ public class MemberManagementPanel extends JPanel implements SearchablePanel {
     @Override
     public void search(String query) {
         model.setRowCount(0);
-        
-        // Treat placeholder value or empty string as an empty query
+
         if (query == null || query.trim().isEmpty() || "Search".equalsIgnoreCase(query.trim())) {
             loadMembers();
             return;

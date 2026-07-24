@@ -26,29 +26,24 @@ import javax.swing.border.EmptyBorder;
 public class EditMemberDialog extends JDialog {
     private JTextField txtName;
     private JTextField txtEmail;
-    
-    // Status flags to tell the parent panel what action was chosen
+
     private boolean editSucceeded = false;
     private boolean deleteRequested = false;
-
-    // Data holder variables
     private String memberName;
     private String emailAddress;
 
     public EditMemberDialog(Frame parent, String existingName, String existingEmail) {
         super(parent, "Modify Member Record", true);
         setLayout(new BorderLayout());
-        setSize(420, 360); // Widened slightly to accommodate 3 buttons comfortably
+        setSize(420, 360); 
         setLocationRelativeTo(parent);
         setResizable(false);
 
-        // Core Form Container
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
         formPanel.setBackground(Color.WHITE);
         formPanel.setBorder(new EmptyBorder(30, 30, 30, 30));
 
-        // Form Header
         JLabel headerLabel = new JLabel("Edit Member Details");
         headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
         headerLabel.setForeground(new Color(15, 32, 67)); 
@@ -56,21 +51,21 @@ public class EditMemberDialog extends JDialog {
         formPanel.add(headerLabel);
         formPanel.add(Box.createVerticalStrut(25));
 
-        // Input 1: Member Name
+        // Member Name
         formPanel.add(createFieldLabel("MEMBER NAME"));
         txtName = createStyledTextField();
         txtName.setText(existingName);
         formPanel.add(txtName);
         formPanel.add(Box.createVerticalStrut(15));
 
-        // Input 2: Email Address
+        // Email Address
         formPanel.add(createFieldLabel("EMAIL ADDRESS"));
         txtEmail = createStyledTextField();
         txtEmail.setText(existingEmail);
         formPanel.add(txtEmail);
         formPanel.add(Box.createVerticalStrut(30));
 
-        // Action Buttons Row (Updated to a 3-column grid layout row)
+        // Action Buttons Row
         JPanel actionsRow = new JPanel(new GridLayout(1, 3, 10, 0));
         actionsRow.setBackground(Color.WHITE);
         actionsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
@@ -80,7 +75,7 @@ public class EditMemberDialog extends JDialog {
         JButton btnDelete = createStyledButton("Delete", new Color(254, 226, 226), new Color(153, 27, 27)); // Warning red theme
         JButton btnCancel = createStyledButton("Cancel", new Color(241, 245, 249), new Color(107, 114, 128));
 
-        // Save logic validation
+        // Save member
         btnSave.addActionListener(e -> {
             if (validateForm()) {
                 memberName = txtName.getText().trim();
@@ -90,7 +85,7 @@ public class EditMemberDialog extends JDialog {
             }
         });
 
-        // Delete trigger action logic
+        // Delete member
         btnDelete.addActionListener(e -> {
             int confirm = JOptionPane.showConfirmDialog(
                     this, 
@@ -164,7 +159,6 @@ public class EditMemberDialog extends JDialog {
         return true;
     }
 
-    // Updated Action state tracking getters
     public boolean isEditSucceeded() { return editSucceeded; }
     public boolean isDeleteRequested() { return deleteRequested; }
     public String getMemberName() { return memberName; }

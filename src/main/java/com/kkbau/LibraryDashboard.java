@@ -109,7 +109,6 @@ public class LibraryDashboard extends JFrame {
         mainPanel.add(rightContainer, BorderLayout.CENTER);
         add(mainPanel);
 
-        // Highlight first navigation item by default
         setTabActive(0);
     }
 
@@ -201,7 +200,6 @@ public class LibraryDashboard extends JFrame {
 
         searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             private void routeSearch() {
-                // Safe cleanup: Close any open row editors if a query filter triggers
                 if (table != null && table.isEditing()) {
                     table.getCellEditor().stopCellEditing();
                 }

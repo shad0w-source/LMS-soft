@@ -287,7 +287,6 @@ public class TransactionManagementPanel extends JPanel implements SearchablePane
 
         model.setRowCount(0);
 
-        // Treat placeholder value or empty string as an empty query
         if (query == null || query.trim().isEmpty() || "Search".equalsIgnoreCase(query.trim())) {
             loadIssuedRecords();
             return;

@@ -5,9 +5,8 @@ public class Book {
     String title;
     String author;
     int stock;
-    String addedDate; // 1. Added this field
+    String addedDate; 
 
-    // 2. Updated constructor to include addedDate
     public Book(int id, String title, String author, int stock, String addedDate) {
         this.id = id;
         this.title = title;
@@ -48,7 +47,6 @@ public class Book {
         this.stock = stock;
     }
 
-    // 3. Added getter and setter for addedDate
     public String getAddedDate() {
         return addedDate;
     }
@@ -57,7 +55,6 @@ public class Book {
         this.addedDate = addedDate;
     }
 
-    // 4. Updated toString() method
     @Override
     public String toString() {
         return "Book{" +
